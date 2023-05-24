@@ -1,0 +1,134 @@
+#include "KWIC.h"
+#include <stdlib.h>
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <windows.h>
+#include <wchar.h>
+#include <sstream>
+#include <vector>
+#include<algorithm>
+using namespace std;
+
+vector<string> CompleteFilelist;
+vector<string> Singlelist;
+vector<string> dictionary;
+
+void WriteToOutputFile(vector<string> printfile) {
+    ofstream file;
+    file.open("output.txt");
+    for (int i = 0; i < printfile.size(); ++i) {
+        file << printfile[i] << endl;
+    }
+    file.close();
+}
+
+void CaseInsensitiveSort(vector<string>& strs)
+{
+    sort(
+        begin(strs),
+        end(strs),
+        [](const string& str1, const string& str2) {
+            return lexicographical_compare(
+                begin(str1), end(str1),
+                begin(str2), end(str2),
+                [](const char& char1, const char& char2) {
+                    return tolower(char1) < tolower(char2);
+                }
+            );
+        }
+    );
+}
+
+void ReadInputFile()
+{
+    wchar_t path[1000] = { 0 };
+    GetCurrentDirectory(1000, path);
+    wchar_t File[1000] = L"\\test.txt";
+    wcscat_s(path, 1000, File);
+    ifstream in(path);
+    string word;
+    if (!in)
+    {
+        cout << "No test file in directory";
+        return;
+    }
+    while (getline(in, word))
+    {
+        CompleteFilelist.push_back(word);
+    }
+}
+
+void GetShiftedTexts(vector<string> wordlist)
+{
+    int last = wordlist.size() - 1;
+    int index = 0;
+    string strlist = "";
+    Singlelist.clear();
+    vector<string>::reverse_iterator i = wordlist.rbegin();
+    Singlelist.push_back(*i);
+    if (wordlist.size() <= 1)
+    {
+        for (const auto& word : Singlelist)
+        {
+            strlist += word + " ";
+        }
+        dictionary.push_back(strlist);
+    }
+    else
+    {
+        for (vector<string>::iterator ai = wordlist.begin(); ai != wordlist.end(); ++ai)
+        {
+            Singlelist.push_back(*ai);
+            index++;
+            if (index == last)
+            {
+                for (const auto& word : Singlelist)
+                {
+                    strlist += word + " ";
+                }
+                dictionary.push_back(strlist);
+                break;
+            }
+        }
+    }
+
+}
+
+int main(int argc, char** argv)
+{
+    //input --> reading list of words from test.txt file
+    ReadInputFile();
+
+    //Shiting of each sentence one by one from complete file list
+    int iShiftcount = 0;
+    string strWord;
+    for (vector<string>::iterator ai = CompleteFilelist.begin(); ai != CompleteFilelist.end(); ++ai)
+    {
+        strWord = "";
+        iShiftcount = 0;
+        Singlelist.clear();
+        istringstream ss(*ai);
+        while (ss >> strWord)
+        {
+            // retrieving each line from file and puting into singlelist for shifting
+            Singlelist.push_back(strWord);
+            iShiftcount++;
+        }
+        while (iShiftcount >= 1)
+        {
+            GetShiftedTexts(Singlelist);
+            iShiftcount--;
+        }
+    }
+
+    //sorting of case-insensitive list 
+    CaseInsensitiveSort(dictionary);
+
+    //Output from KWIC to output file
+    WriteToOutputFile(dictionary);
+
+    return 0;
+}
+
+

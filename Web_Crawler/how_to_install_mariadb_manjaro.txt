@@ -1,0 +1,24 @@
+#install mysql / mariadb
+#following line is used on Manjaro Linux
+sudo pacman -Sy mariadb
+sudo mariadb-install-db --user=mysql --basedir=/usr --datadir=/var/lib/mysql
+sudo mysql_secure_installation
+sudo systemctl start mariadb
+sudo mysql
+
+CREATE DATABASE `ESO_COMMENTS`;
+USE ESO_COMMENTS;
+CREATE TABLE MESSAGES (
+    DISCUSSION_ID INT,
+    TITLE VARCHAR(512),
+    TIME DATETIME,
+    MESSAGE TEXT,
+    URL TEXT
+    );
+
+CREATE USER esodb@localhost IDENTIFIED BY '14bAdm1n!';
+GRANT ALL PRIVILEGES ON ESO_COMMENTS.MESSAGES TO 'esodb'@'localhost';
+
+#useful reference for user account management:
+# https://www.digitalocean.com/community/tutorials/how-to-create-a-new-user-and-grant-permissions-in-mysql
+
